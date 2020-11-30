@@ -79,6 +79,8 @@ abstract class PptxHandler {
             }
         }
 
+        sort($slideLocations);
+
         $extractedSlides = [];
         foreach ($slideLocations as $slideLocation) {
             $documentXmlContents = file_get_contents($slideLocation);
