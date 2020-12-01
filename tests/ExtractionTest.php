@@ -2,6 +2,8 @@
 
 use Label305\PptxExtractor\Basic\BasicExtractor;
 use Label305\PptxExtractor\Basic\BasicInjector;
+use Label305\PptxExtractor\Decorated\DecoratedTextExtractor;
+use Label305\PptxExtractor\Decorated\DecoratedTextInjector;
 
 class ExtractionTest extends TestCase {
 
@@ -53,6 +55,42 @@ class ExtractionTest extends TestCase {
         unlink(__DIR__.'/fixtures/styled-presentation-multiple-extracted.pptx');
         unlink(__DIR__.'/fixtures/styled-presentation-multiple-injected-extracted.pptx');
         unlink(__DIR__.'/fixtures/styled-presentation-multiple-injected.pptx');
+    }
+
+    public function test_markup() {
+
+        $extractor = new DecoratedTextExtractor();
+        $mapping = $extractor->extractStringsAndCreateMappingFile(__DIR__. '/fixtures/markup-presentation.pptx', __DIR__. '/fixtures/markup-presentation-extracted.pptx');
+        $this->assertEquals("Test", $mapping[0][0]->text);
+        $this->assertEquals("slide ", $mapping[0][2]->text);
+        $this->assertEquals("Italic", $mapping[0][3]->text);
+        $this->assertEquals("Underline", $mapping[0][4]->text);
+        $this->assertEquals("List item 1", $mapping[2][0]->text);
+        $this->assertEquals("List item 2", $mapping[3][0]->text);
+
+        $mapping[0][0]->text = 'Vertaald';
+        $mapping[0][2]->text = 'sheet';
+        $mapping[0][3]->text = 'Schuingedrukt';
+        $mapping[0][4]->text = 'Onderlijnd';
+        $mapping[2][0]->text = 'Lijst item 1';
+        $mapping[3][0]->text = 'Lijst item 2';
+
+        $injector = new DecoratedTextInjector();
+        $injector->injectMappingAndCreateNewFile($mapping, __DIR__. '/fixtures/markup-presentation-extracted.pptx', __DIR__. '/fixtures/markup-presentation-injected.pptx');
+
+        $otherExtractor = new DecoratedTextExtractor();
+        $otherMapping = $otherExtractor->extractStringsAndCreateMappingFile(__DIR__. '/fixtures/markup-presentation-injected.pptx', __DIR__. '/fixtures/markup-presentation-injected-extracted.pptx');
+
+        $this->assertEquals('Vertaald', $otherMapping[0][0]->text);
+        $this->assertEquals('sheet', $otherMapping[0][2]->text);
+        $this->assertEquals('Schuingedrukt', $otherMapping[0][3]->text);
+        $this->assertEquals('Onderlijnd', $otherMapping[0][4]->text);
+        $this->assertEquals('Lijst item 1', $otherMapping[2][0]->text);
+        $this->assertEquals('Lijst item 2', $otherMapping[3][0]->text);
+
+        unlink(__DIR__.'/fixtures/markup-presentation-extracted.pptx');
+        unlink(__DIR__.'/fixtures/markup-presentation-injected-extracted.pptx');
+        unlink(__DIR__.'/fixtures/markup-presentation-injected.pptx');
     }
     
 }
