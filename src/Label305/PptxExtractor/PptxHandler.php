@@ -4,11 +4,8 @@ namespace Label305\PptxExtractor;
 
 use DirectoryIterator;
 use DOMDocument;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use ZipArchive;
 
-abstract class PptxHandler {
+abstract class PptxHandler extends ZipHandler {
 
     /**
      * Defaults to sys_get_temp_dir()
@@ -26,18 +23,18 @@ abstract class PptxHandler {
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getTemporaryDirectory()
+    public function getTemporaryDirectory(): ?string
     {
         return $this->temporaryDirectory;
     }
 
     /**
-     * @param string $temporaryDirectory
+     * @param string|null $temporaryDirectory
      * @return $this
      */
-    public function setTemporaryDirectory($temporaryDirectory)
+    public function setTemporaryDirectory(?string $temporaryDirectory)
     {
         $this->temporaryDirectory = $temporaryDirectory;
         return $this;
@@ -45,34 +42,30 @@ abstract class PptxHandler {
 
     /**
      * Extract file
-     * @param $filePath
+     * @param string $filePath
      * @throws PptxFileException
      * @throws PptxParsingException
-     * @returns array With "document" key, "dom" and "archive" key both are paths. "slide" points to the slide.xml
-     * and "archive" points to the root of the archive. "dom" is the DOMDocument object for the document.xml.
+     * @returns array With "slide" key, "dom" and "archive" key both are paths. "slide" points to the ppt/slide.xml (or slide1.xml, slide2.xml)
+     * and "archive" points to the root of the archive. "dom" is the DOMDocument object for the slide.xml.
      */
-    protected function prepareDocumentForReading($filePath)
+    protected function prepareDocumentForReading(string $filePath)
     {
         //Make sure we have a complete and correct path
         $filePath = realpath($filePath) ?: $filePath;
 
-        $temp = $this->temporaryDirectory . DIRECTORY_SEPARATOR . uniqid();
+        $tempPath = $this->temporaryDirectory . DIRECTORY_SEPARATOR . uniqid();
 
-        if (file_exists($temp)) {
-            $this->rmdirRecursive($temp);
+        if (file_exists($tempPath)) {
+            $this->rmdirRecursive($tempPath);
         }
-        mkdir($temp);
+        mkdir($tempPath);
 
-        $zip = new ZipArchive;
-        $opened = $zip->open($filePath);
-        if ($opened !== TRUE) {
-            throw new PptxFileException( 'Could not open zip archive ' . $filePath . '[' . $opened . ']' );
-        }
-        $zip->extractTo($temp);
-        $zip->close();
+        // Open the zip
+        $this->openZip($filePath, $tempPath);
 
+        // Find slides
         $slideLocations = [];
-        $slidesPath = $temp . DIRECTORY_SEPARATOR . 'ppt' . DIRECTORY_SEPARATOR . 'slides';
+        $slidesPath = $tempPath . DIRECTORY_SEPARATOR . 'ppt' . DIRECTORY_SEPARATOR . 'slides';
         foreach (new DirectoryIterator($slidesPath) as $fileInfo) {
             if ($fileInfo->getType() === 'file' && strpos($fileInfo->getFilename(), 'slide') !== -1) {
                 $slideLocations[] = $slidesPath . DIRECTORY_SEPARATOR . $fileInfo->getFilename();
@@ -81,6 +74,7 @@ abstract class PptxHandler {
 
         sort($slideLocations);
 
+        // Prepare slides for reading
         $extractedSlides = [];
         foreach ($slideLocations as $slideLocation) {
             $documentXmlContents = file_get_contents($slideLocation);
@@ -94,7 +88,7 @@ abstract class PptxHandler {
             $extractedSlides[] = [
                 "dom" => $dom,
                 "slide" => $slideLocation,
-                "archive" => $temp
+                "archive" => $tempPath
             ];
         }
 
@@ -102,13 +96,24 @@ abstract class PptxHandler {
     }
 
     /**
-     * @param $preparedSlides
-     * @param $archiveLocation
-     * @param $saveLocation
+     * @param array $preparedSlides
+     * @param string $saveLocation
      * @throws PptxFileException
      */
-    protected function saveDocument($preparedSlides, $saveLocation)
+    protected function saveDocument(array $preparedSlides, string $saveLocation)
     {
+        foreach ($preparedSlides as $preparedSlide) {
+            if (!array_key_exists('archive', $preparedSlide)) {
+                throw new PptxFileException('The prepared slides array should contain an "archive" key with the path to the whole archive');
+            }
+            if (!array_key_exists('slide', $preparedSlide)) {
+                throw new PptxFileException('The prepared slides array should contain a "slide" key with the path to the ppt/slide.xml');
+            }
+            if (!array_key_exists('dom', $preparedSlide)) {
+                throw new PptxFileException('The prepared slides array should contain a "dom" key with the parsed DOM from the ppt/slide.xml');
+            }
+        }
+
         $archiveLocation = null;
         foreach ($preparedSlides as $preparedSlide) {
             if(!file_exists($preparedSlide['archive'])) {
@@ -128,41 +133,7 @@ abstract class PptxHandler {
             file_put_contents($preparedSlide['slide'], $newDocumentXMLContents);
         }
 
-
-        //Create a pptx file again
-        $zip = new ZipArchive;
-
-        $opened = $zip->open($saveLocation, ZIPARCHIVE::CREATE | ZipArchive::OVERWRITE);
-        if ($opened !== true) {
-            throw new PptxFileException( 'Cannot open zip: ' . $saveLocation . ' [' . $opened . ']' );
-        }
-
-        // Create recursive directory iterator
-        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($archiveLocation), RecursiveIteratorIterator::LEAVES_ONLY);
-
-        foreach($files as $name => $file) {
-
-            $filePath = $file->getRealPath();
-
-            if (in_array($file->getFilename(), array('.', '..'))) {
-                continue;
-            }
-
-            if (!file_exists($filePath)) {
-                throw new PptxFileException( 'File does not exists: ' . $file->getPathname() );
-            } else {
-                if (!is_readable($filePath)) {
-                    throw new PptxFileException( 'File is not readable: ' . $file->getPathname() );
-                } else {
-                    if (!$zip->addFile($filePath, substr($file->getPathname(), strlen($archiveLocation) + 1))) {
-                        throw new PptxFileException( 'Error adding file: ' . $file->getPathname() );
-                    }
-                }
-            }
-        }
-        if (!$zip->close()) {
-            throw new PptxFileException( 'Could not create zip file' );
-        }
+        $this->buildZip($saveLocation, $archiveLocation);
     }
 
     /**

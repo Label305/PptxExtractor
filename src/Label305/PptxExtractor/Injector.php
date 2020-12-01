@@ -4,13 +4,13 @@
 interface Injector {
 
     /**
-     * @param $mapping
-     * @param $fileToInjectLocationPath
-     * @param $saveLocationPath
+     * @param array $mapping
+     * @param string $fileToInjectLocationPath
+     * @param string $saveLocationPath
      * @throws PptxParsingException
      * @throws PptxFileException
      * @return void
      */
-    public function injectMappingAndCreateNewFile($mapping, $fileToInjectLocationPath, $saveLocationPath);
+    public function injectMappingAndCreateNewFile(array $mapping, string $fileToInjectLocationPath, string $saveLocationPath);
 
 }

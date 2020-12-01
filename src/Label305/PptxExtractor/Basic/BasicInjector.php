@@ -12,14 +12,14 @@ use Label305\PptxExtractor\Injector;
 class BasicInjector extends PptxHandler implements Injector {
 
     /**
-     * @param $mapping
-     * @param $fileToInjectLocationPath
-     * @param $saveLocationPath
+     * @param array $mapping
+     * @param string $fileToInjectLocationPath
+     * @param string $saveLocationPath
      * @throws PptxFileException
      * @throws PptxParsingException
      * @return void
      */
-    public function injectMappingAndCreateNewFile($mapping, $fileToInjectLocationPath, $saveLocationPath)
+    public function injectMappingAndCreateNewFile(array $mapping, string $fileToInjectLocationPath, string $saveLocationPath)
     {
         $preparedSlides = $this->prepareDocumentForReading($fileToInjectLocationPath);
 
@@ -32,9 +32,9 @@ class BasicInjector extends PptxHandler implements Injector {
 
     /**
      * @param DOMNode $node
-     * @param $mapping
+     * @param array $mapping
      */
-    protected function assignMappedValues(DOMNode $node, $mapping)
+    protected function assignMappedValues(DOMNode $node, array $mapping)
     {
         if ($node instanceof DOMText) {
             $results = [];

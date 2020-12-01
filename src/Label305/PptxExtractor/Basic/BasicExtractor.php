@@ -22,10 +22,11 @@ class BasicExtractor extends PptxHandler implements Extractor {
     /**
      * @param $originalFilePath
      * @param $mappingFileSaveLocationPath
+     * @return array
      * @throws PptxParsingException
      * @throws PptxFileException
      */
-    public function extractStringsAndCreateMappingFile($originalFilePath, $mappingFileSaveLocationPath)
+    public function extractStringsAndCreateMappingFile(string $originalFilePath, string $mappingFileSaveLocationPath): array
     {
         $preparedSlides = $this->prepareDocumentForReading($originalFilePath);
 
@@ -53,13 +54,13 @@ class BasicExtractor extends PptxHandler implements Extractor {
      * @param DOMNode $node
      * @return array returns the mapping array
      */
-    protected function replaceAndMapValues(DOMNode $node)
+    protected function replaceAndMapValues(DOMNode $node): array
     {
         $result = [];
 
         if ($node instanceof DOMText) {
             $result[$this->nextTagIdentifier] = $node->nodeValue;
-            $node->nodeValue = "%".$this->nextTagIdentifier."%";
+            $node->nodeValue = "%". $this->nextTagIdentifier. "%";
             $this->nextTagIdentifier++;
         }
 
