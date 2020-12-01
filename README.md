@@ -1,4 +1,4 @@
-Docx Extractor [![Build Status](https://travis-ci.org/Label305/PptxExtractor.svg)](https://travis-ci.org/Label305/DocxExtractor)
+Docx Extractor [![Build Status](https://travis-ci.org/Label305/PptxExtractor.svg)](https://travis-ci.org/Label305/PptxExtractor)
 =============
 
 PHP library for extracting and replacing string data in .pptx files. Pptx files are zip archives filled with XML documents and assets. Their format is described by [OOXML](http://nl.wikipedia.org/wiki/Office_Open_XML). This library only manipulates the `ppt/slide.xml` (of slide1.xml, slide2.xml) files.

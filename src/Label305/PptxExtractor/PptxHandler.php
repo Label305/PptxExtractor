@@ -43,9 +43,10 @@ abstract class PptxHandler extends ZipHandler {
     /**
      * Extract file
      * @param string $filePath
+     * @return array
      * @throws PptxFileException
      * @throws PptxParsingException
-     * @returns array With "slide" key, "dom" and "archive" key both are paths. "slide" points to the ppt/slide.xml (or slide1.xml, slide2.xml)
+     * @returns array With "slide" key, "dom" and "archive" key both are paths. "document" points to the ppt/slide.xml (or slide1.xml, slide2.xml)
      * and "archive" points to the root of the archive. "dom" is the DOMDocument object for the slide.xml.
      */
     protected function prepareDocumentForReading(string $filePath)
@@ -64,20 +65,20 @@ abstract class PptxHandler extends ZipHandler {
         $this->openZip($filePath, $tempPath);
 
         // Find slides
-        $slideLocations = [];
+        $documentLocations = [];
         $slidesPath = $tempPath . DIRECTORY_SEPARATOR . 'ppt' . DIRECTORY_SEPARATOR . 'slides';
         foreach (new DirectoryIterator($slidesPath) as $fileInfo) {
             if ($fileInfo->getType() === 'file' && strpos($fileInfo->getFilename(), 'slide') !== -1) {
-                $slideLocations[] = $slidesPath . DIRECTORY_SEPARATOR . $fileInfo->getFilename();
+                $documentLocations[] = $slidesPath . DIRECTORY_SEPARATOR . $fileInfo->getFilename();
             }
         }
 
-        sort($slideLocations);
+        sort($documentLocations);
 
         // Prepare slides for reading
-        $extractedSlides = [];
-        foreach ($slideLocations as $slideLocation) {
-            $documentXmlContents = file_get_contents($slideLocation);
+        $extractedDocuments = [];
+        foreach ($documentLocations as $documentLocation) {
+            $documentXmlContents = file_get_contents($documentLocation);
             $dom = new DOMDocument();
             $loadXMLResult = $dom->loadXML($documentXmlContents, LIBXML_NOERROR | LIBXML_NOWARNING);
 
@@ -85,14 +86,14 @@ abstract class PptxHandler extends ZipHandler {
                 throw new PptxParsingException( 'Could not parse XML document' );
             }
 
-            $extractedSlides[] = [
+            $extractedDocuments[] = [
                 "dom" => $dom,
-                "slide" => $slideLocation,
+                "document" => $documentLocation,
                 "archive" => $tempPath
             ];
         }
 
-        return $extractedSlides;
+        return $extractedDocuments;
     }
 
     /**
@@ -106,8 +107,8 @@ abstract class PptxHandler extends ZipHandler {
             if (!array_key_exists('archive', $preparedSlide)) {
                 throw new PptxFileException('The prepared slides array should contain an "archive" key with the path to the whole archive');
             }
-            if (!array_key_exists('slide', $preparedSlide)) {
-                throw new PptxFileException('The prepared slides array should contain a "slide" key with the path to the ppt/slide.xml');
+            if (!array_key_exists('document', $preparedSlide)) {
+                throw new PptxFileException('The prepared slides array should contain a "document" key with the path to the ppt/slide.xml');
             }
             if (!array_key_exists('dom', $preparedSlide)) {
                 throw new PptxFileException('The prepared slides array should contain a "dom" key with the parsed DOM from the ppt/slide.xml');
@@ -119,8 +120,8 @@ abstract class PptxHandler extends ZipHandler {
             if(!file_exists($preparedSlide['archive'])) {
                 throw new PptxFileException( 'Archive should exist: ' . $preparedSlide['archive']);
             }
-            if(!file_exists($preparedSlide['slide'])) {
-                throw new PptxFileException( 'Archive should exist: ' . $preparedSlide['slide']);
+            if(!file_exists($preparedSlide['document'])) {
+                throw new PptxFileException( 'Archive should exist: ' . $preparedSlide['document']);
             }
             if ($archiveLocation === null) {
                 $archiveLocation = $preparedSlide['archive'];
@@ -130,7 +131,7 @@ abstract class PptxHandler extends ZipHandler {
 
         foreach ($preparedSlides as $preparedSlide) {
             $newDocumentXMLContents = $preparedSlide['dom']->saveXml();
-            file_put_contents($preparedSlide['slide'], $newDocumentXMLContents);
+            file_put_contents($preparedSlide['document'], $newDocumentXMLContents);
         }
 
         $this->buildZip($saveLocation, $archiveLocation);
