@@ -26,16 +26,6 @@ class Style {
     /**
      * @var string|null
      */
-    public $bold;
-
-    /**
-     * @var string|null
-     */
-    public $italic;
-
-    /**
-     * @var string|null
-     */
     public $baseline;
 
     /**
@@ -46,23 +36,21 @@ class Style {
     /**
      * @var ColorStyle|null
      */
-    private $highlight;
+    public $highlight;
 
     /**
      * @var FontStyle|null
      */
-    private $latin;
+    public $latin;
 
     /**
      * @var FontStyle|null
      */
-    private $cs;
+    public $cs;
 
     function __construct(
         ?string $lang = null,
         ?string $underline = null,
-        ?string $bold = null,
-        ?string $italic = null,
         ?string $baseline = null,
         ?ColorStyle $solidFill = null,
         ?ColorStyle $highlight = null,
@@ -71,8 +59,6 @@ class Style {
     ) {
         $this->lang = $lang;
         $this->underline = $underline;
-        $this->bold = $bold;
-        $this->italic = $italic;
         $this->baseline = $baseline;
         $this->solidFill = $solidFill;
         $this->highlight = $highlight;
@@ -88,70 +74,66 @@ class Style {
     public function toPptxXML()
     {
         $value = '';
-        $value .= $this->openArPr();
-        if ($this->latin !== null) {
-            $value .= '<a:latin typeface="' . $this->latin->typeface . '" panose="' . $this->latin->panose . '" pitchFamily="' . $this->latin->pitchFamily . '" charset="' . $this->latin->charset . '"/>';
-        }
-        if ($this->cs !== null) {
-            $value .= '<a:cs typeface="' . $this->cs->typeface . '" panose="' . $this->cs->panose . '" pitchFamily="' . $this->cs->pitchFamily . '" charset="' . $this->cs->charset . '"/>';
-        }
         if ($this->solidFill !== null) {
-            $value .= '<a:solidFill>';
-            $value .= $this->getColorStyleXml($this->solidFill);
-            $value .= '</a:solidFill>';
+            $value .= $this->getColorStyleXml($this->solidFill, 'solidFill');
         }
         if ($this->highlight !== null) {
-            $value .= '<a:highlight>';
-            $value .= $this->getColorStyleXml($this->highlight);
-            $value .= '</a:highlight>';
+            $value .= $this->getColorStyleXml($this->highlight, 'highlight');
         }
-
-        $value .= '</a:rPr>';
+        if ($this->latin !== null) {
+            $value .= $this->getFontStyle($this->latin, 'latin');
+        }
+        if ($this->cs !== null) {
+            $value .= $this->getFontStyle($this->cs, 'cs');
+        }
 
         return $value;
     }
 
     /**
+     * @param FontStyle $fontStyle
+     * @param string $tagName
      * @return string
      */
-    private function openArPr()
+    private function getFontStyle(FontStyle $fontStyle, string $tagName)
     {
         $value = '';
-        $value .= '<a:rPr ';
-        if ($this->lang !== null) {
-            $value .= ' lang="' . $this->lang . '"';
+        $value .= '<a:' . $tagName . ' typeface="' . $fontStyle->typeface . '"';
+        if ($fontStyle->panose !== null && $fontStyle->panose !== "") {
+            $value .= ' panose="' . $fontStyle->panose . '"';
         }
-        if ($this->bold !== null) {
-            $value .= ' b="' . $this->bold . '"';
+        if ($fontStyle->pitchFamily !== null && $fontStyle->pitchFamily !== "") {
+            $value .= ' pitchFamily="' . $fontStyle->pitchFamily . '"';
         }
-        if ($this->underline !== null) {
-            $value .= ' u="' . $this->underline . '"';
+        if ($fontStyle->charset !== null && $fontStyle->charset !== "") {
+            $value .= ' charset="' . $fontStyle->charset . '"';
         }
-        if ($this->italic !== null) {
-            $value .= ' i="' . $this->italic . '"';
-        }
-        if ($this->baseline !== null) {
-            $value .= ' baseline="' . $this->baseline . '"';
-        }
-        $value .= ' dirty="0">';
+        $value .= ' />';
 
         return $value;
     }
 
     /**
      * @param ColorStyle $colorStyle
+     * @param string $tagName
      * @return string
      */
-    private function getColorStyleXml(ColorStyle $colorStyle)
+    private function getColorStyleXml(ColorStyle $colorStyle, string $tagName)
     {
         $value = '';
-        $value .= '<a:schemeClr val="' . $colorStyle->schemeClr . '">';
-        if ($colorStyle->schemeClrLumMod !== null) {
-            $value .= '<a:lumMod val="' . $colorStyle->schemeClrLumMod . '"/>';
-        } elseif ($colorStyle->srgbClr !== null) {
+        $value .= '<a:' . $tagName . '>';
+        if ($colorStyle->schemeClr !== null && $colorStyle->schemeClr !== "") {
+            $value .= '<a:schemeClr val="' . $colorStyle->schemeClr . '">';
+            if ($colorStyle->schemeClrLumMod !== null && $colorStyle->schemeClrLumMod !== "") {
+                $value .= '<a:lumMod val="' . $colorStyle->schemeClrLumMod . '"/>';
+            }
+            $value .= '</a:schemeClr>';
+
+        } elseif ($colorStyle->srgbClr !== null && $colorStyle->srgbClr !== "") {
             $value .= '<a:srgbClr val="' . $colorStyle->srgbClr . '"/>';
         }
-        $value .= '</a:schemeClr>';
+        $value .= '</a:' . $tagName . '>';
+
         return $value;
     }
 }

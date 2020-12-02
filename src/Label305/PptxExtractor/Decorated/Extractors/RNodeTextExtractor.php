@@ -18,11 +18,17 @@ class RNodeTextExtractor implements TextExtractor {
     public function extract(DOMElement $DOMElement) {
 
         $text = null;
+        $bold = false;
+        $italic = false;
+        $underline = false;
+        $highLight = false;
+        $superscript = false;
+        $subscript = false;
         $style = null;
         $result = [];
 
         foreach ($DOMElement->childNodes as $rChild) {
-            $this->parseChildRNode($rChild, $result, $text, $style);
+            $this->parseChildRNode($rChild, $result, $text, $bold, $italic, $underline, $highLight, $superscript, $subscript, $style);
         }
 
         return $result;
@@ -32,54 +38,30 @@ class RNodeTextExtractor implements TextExtractor {
      * @param $rChild
      * @param array $result
      * @param string|null $text
+     * @param bool|null $bold
+     * @param bool|null $italic
+     * @param bool|null $underline
+     * @param bool|null $highLight
+     * @param bool|null $superscript
+     * @param bool|null $subscript
      * @param Style|null $style
      */
     private function parseChildRNode(
         $rChild,
         array &$result,
         ?string &$text,
+        ?bool &$bold,
+        ?bool &$italic,
+        ?bool &$underline,
+        ?bool &$highLight,
+        ?bool &$superscript,
+        ?bool &$subscript,
         ?Style &$style
     ) {
-        $lang = null;
-        $underline = null;
-        $bold = null;
-        $italic = null;
-        $baseline = null;
-
         if ($rChild instanceof DOMElement) {
             switch ($rChild->nodeName) {
                 case "a:rPr" :
-                    $solidFill = null;
-                    $highlight = null;
-                    $latin = null;
-                    $cs = null;
-                    $hasStyle = false;
-
-                    foreach ($rChild->childNodes as $propertyNode) {
-                        if ($propertyNode instanceof DOMElement) {
-                            $this->parseStyle(
-                                $propertyNode,
-                                $solidFill,
-                                $highlight,
-                                $latin,
-                                $cs,
-                                $hasStyle
-                            );
-                        }
-                    }
-                    if ($hasStyle) {
-                        $style = new Style(
-                            $rChild->getAttribute('lang'),
-                            $rChild->getAttribute('u'),
-                            $rChild->getAttribute('b'),
-                            $rChild->getAttribute('i'),
-                            $rChild->getAttribute('baseline'),
-                            $solidFill,
-                            $highlight,
-                            $latin,
-                            $cs
-                        );
-                    }
+                    $this->parseRPRNode($rChild, $bold, $italic, $underline, $highLight, $superscript, $subscript, $style);
                     break;
 
                 case "a:t" :
@@ -87,9 +69,8 @@ class RNodeTextExtractor implements TextExtractor {
                     break;
             }
 
-
             if ($text !== null && strlen($text) !== 0) {
-                $result[] = new TextRun($text, $style);
+                $result[] = new TextRun($text, $bold, $italic, $underline, $highLight, $superscript, $subscript, $style);
 
                 // Reset
                 $style = null;
@@ -98,60 +79,88 @@ class RNodeTextExtractor implements TextExtractor {
         }
     }
 
+    private function parseRPRNode(
+        DOMElement $rChild,
+        ?bool &$bold,
+        ?bool &$italic,
+        ?bool &$underline,
+        ?bool &$highLight,
+        ?bool &$superscript,
+        ?bool &$subscript,
+        ?Style &$style
+    ) {
+        $solidFillStyle = null;
+        $highlightStyle = null;
+        $latinStyle = null;
+        $csStyle = null;
+        $hasStyle = false;
+
+        foreach ($rChild->childNodes as $propertyNode) {
+            if ($propertyNode instanceof DOMElement) {
+                $this->parseStyle($propertyNode, $solidFillStyle, $highlightStyle, $latinStyle, $csStyle, $hasStyle);
+            }
+        }
+
+        if ($hasStyle) {
+            $lang = $rChild->getAttribute('lang');
+            $underlineStyle = $rChild->getAttribute('u');
+            $baseline = $rChild->getAttribute('baseline');
+
+            $style = new Style(
+                !empty($lang) ? $lang : null,
+                !empty($underlineStyle) ? $underlineStyle : null,
+                !empty($baseline) ? $baseline : null,
+                $solidFillStyle,
+                $highlightStyle,
+                $latinStyle,
+                $csStyle
+            );
+        }
+
+        $bold = !empty($rChild->getAttribute('b'));
+        $italic = !empty($rChild->getAttribute('i'));
+        $underline = !empty($rChild->getAttribute('u'));
+        $highLight = $highlightStyle !== null;
+        $superscript = !empty($baseline) && (int) $baseline > 0;
+        $subscript = !empty($baseline) && (int) $baseline < 0;
+    }
+
     /**
      * @param DOMElement $propertyNode
-     * @param ColorStyle|null $solidFill
-     * @param ColorStyle|null $highlight
-     * @param FontStyle|null $latin
-     * @param FontStyle|null $cs
+     * @param ColorStyle|null $solidFillStyle
+     * @param ColorStyle|null $highlightStyle
+     * @param FontStyle|null $latinStyle
+     * @param FontStyle|null $csStyle
      * @param bool $hasStyle
      */
     private function parseStyle(
         DOMElement $propertyNode,
-        ?ColorStyle &$solidFill,
-        ?ColorStyle &$highlight,
-        ?FontStyle &$latin,
-        ?FontStyle &$cs,
+        ?ColorStyle &$solidFillStyle,
+        ?ColorStyle &$highlightStyle,
+        ?FontStyle &$latinStyle,
+        ?FontStyle &$csStyle,
         bool &$hasStyle
     ) {
-        if (in_array($propertyNode->nodeName,  ["a:solidFill", "a:highlight"])) {
-            $colorStyle = new ColorStyle();
-            if ($propertyNode->childNodes !== null) {
-                foreach ($propertyNode->childNodes as $colorNode) {
-                    if ($colorNode instanceof DOMElement && $colorNode->nodeName === "a:schemeClr") {
-                        $colorStyle->schemeClr = $colorNode->getAttribute('val');
-                        if ($colorNode->childNodes !== null) {
-                            foreach ($colorNode->childNodes as $schemeClrChildNode) {
-                                if ($schemeClrChildNode instanceof DOMElement && $schemeClrChildNode->nodeName === "a:lumMod") {
-                                    $colorStyle->schemeClrLumMod = $schemeClrChildNode->getAttribute('val');
-                                }
-                            }
-                        }
-                    } elseif ($colorNode instanceof DOMElement && $colorNode->nodeName === "a:srgbClr") {
-                        $colorStyle->srgbClr = $colorNode->getAttribute('val');
-                    }
-                }
-                if ($propertyNode->nodeName === "a:solidFill") {
-                    $solidFill = $colorStyle;
-                } elseif ($propertyNode->nodeName === "a:solidFill") {
-                    $highlight = $colorStyle;
-                }
+        switch ($propertyNode->nodeName) {
+            case "a:solidFill" :
+                $solidFillStyle = (new ColorStyleExtractor())->extract($propertyNode);
                 $hasStyle = true;
-            }
+                break;
 
-        } elseif (in_array($propertyNode->nodeName,  ["a:latin", "a:cs"])) {
-            $fontStyle = new FontStyle();
-            $fontStyle->typeface = $propertyNode->getAttribute('typeface');
-            $fontStyle->panose = $propertyNode->getAttribute('panose');
-            $fontStyle->pitchFamily = $propertyNode->getAttribute('pitchFamily');
-            $fontStyle->charset = $propertyNode->getAttribute('charset');
+            case "a:highlight" :
+                $highlightStyle = (new ColorStyleExtractor())->extract($propertyNode);
+                $hasStyle = true;
+                break;
 
-            if ($propertyNode->nodeName === "a:latin") {
-                $latin = $fontStyle;
-            } elseif ($propertyNode->nodeName === "a:cs") {
-                $cs = $fontStyle;
-            }
-            $hasStyle = true;
+            case "a:latin" :
+                $latinStyle = (new FontStyleExtractor())->extract($propertyNode);
+                $hasStyle = true;
+                break;
+
+            case "a:cs" :
+                $csStyle = (new FontStyleExtractor())->extract($propertyNode);
+                $hasStyle = true;
+                break;
         }
     }
 }

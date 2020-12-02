@@ -43,47 +43,48 @@ class Paragraph extends ArrayObject
      * Recursive method to fill paragraph from HTML data
      *
      * @param DOMNode $node
-     * @param int $br
      * @param bool $bold
      * @param bool $italic
      * @param bool $underline
+     * @param bool $highlight
      * @param bool $superscript
      * @param bool $subscript
      */
     public function fillWithHTMLDom(
         DOMNode $node,
-        $br = 0,
-        $bold = false,
-        $italic = false,
-        $underline = false,
-        $superscript = false,
-        $subscript = false
+        bool $bold = false,
+        bool $italic = false,
+        bool $underline = false,
+        bool $highlight = false,
+        bool $superscript = false,
+        bool $subscript = false
     ) {
         if ($node instanceof DOMText) {
-
-            $this[] = new TextRun($node->nodeValue);
+            $this[] = new TextRun($node->nodeValue, $bold, $italic, $underline, $highlight, $superscript, $subscript);
 
         } else {
             if ($node->childNodes !== null) {
 
-//                if ($node->nodeName == 'b' || $node->nodeName == 'strong') {
-//                    $bold = true;
-//                }
-//                if ($node->nodeName == 'i' || $node->nodeName == 'em') {
-//                    $italic = true;
-//                }
-//                if ($node->nodeName == 'u') {
-//                    $underline = true;
-//                }
-//                if ($node->nodeName == 'sup') {
-//                    $superscript = true;
-//                }
-//                if ($node->nodeName == 'sub') {
-//                    $subscript = true;
-//                }
-
+                if ($node->nodeName == 'b' || $node->nodeName == 'strong') {
+                    $bold = true;
+                }
+                if ($node->nodeName == 'i' || $node->nodeName == 'em') {
+                    $italic = true;
+                }
+                if ($node->nodeName == 'u') {
+                    $underline = true;
+                }
+                if ($node->nodeName == 'mark') {
+                    $highlight = true;
+                }
+                if ($node->nodeName == 'sup') {
+                    $superscript = true;
+                }
+                if ($node->nodeName == 'sub') {
+                    $subscript = true;
+                }
                 foreach ($node->childNodes as $child) {
-                    $this->fillWithHTMLDom($child, $br, $bold, $italic, $underline, $superscript, $subscript);
+                    $this->fillWithHTMLDom($child, $bold, $italic, $underline, $highlight, $superscript, $subscript);
                 }
             }
         }
@@ -97,9 +98,94 @@ class Paragraph extends ArrayObject
     public function toHTML()
     {
         $result = '';
+
+        $boldIsActive = false;
+        $italicIsActive = false;
+        $underlineIsActive = false;
+        $highlightActive = false;
+        $superscriptActive = false;
+        $subscriptActive = false;
+
         for ($i = 0; $i < count($this); $i++) {
-            $text = $this[$i];
-            $result .= $text->toHTML();
+
+            $sentence = $this[$i];
+
+            $openBold = false;
+            if ($sentence->bold && !$boldIsActive) {
+                $boldIsActive = true;
+                $openBold = true;
+            }
+
+            $openItalic = false;
+            if ($sentence->italic && !$italicIsActive) {
+                $italicIsActive = true;
+                $openItalic = true;
+            }
+
+            $openUnderline = false;
+            if ($sentence->underline && !$underlineIsActive) {
+                $underlineIsActive = true;
+                $openUnderline = true;
+            }
+
+            $openHighlight = false;
+            if ($sentence->highlight && !$highlightActive) {
+                $highlightActive = true;
+                $openHighlight = true;
+            }
+
+            $openSuperscript = false;
+            if ($sentence->superscript && !$superscriptActive) {
+                $superscriptActive = true;
+                $openSuperscript = true;
+            }
+
+            $openSubscript = false;
+            if ($sentence->subscript && !$subscriptActive) {
+                $subscriptActive = true;
+                $openSubscript = true;
+            }
+
+            $nextSentence = ($i + 1 < count($this)) ? $this[$i + 1] : null;
+            $closeBold = false;
+            if ($nextSentence === null || (!$nextSentence->bold && $boldIsActive)) {
+                $boldIsActive = false;
+                $closeBold = true;
+            }
+
+            $closeItalic = false;
+            if ($nextSentence === null || (!$nextSentence->italic && $italicIsActive)) {
+                $italicIsActive = false;
+                $closeItalic = true;
+            }
+
+            $closeUnderline = false;
+            if ($nextSentence === null || (!$nextSentence->underline && $underlineIsActive)) {
+                $underlineIsActive = false;
+                $closeUnderline = true;
+            }
+
+            $closeHighlight = false;
+            if ($nextSentence === null || (!$nextSentence->highlight && $highlightActive)) {
+                $highlightActive = false;
+                $closeHighlight = true;
+            }
+
+            $closeSuperscript = false;
+            if ($nextSentence === null || (!$nextSentence->superscript && $superscriptActive)) {
+                $superscriptActive = false;
+                $closeSuperscript = true;
+            }
+
+            $closeSubscript = false;
+            if ($nextSentence === null || (!$nextSentence->subscript && $subscriptActive)) {
+                $subscriptActive = false;
+                $closeSubscript = true;
+            }
+
+            $result .= $sentence->toHTML($openBold, $openItalic, $openUnderline, $openHighlight, $openSuperscript,
+                $openSubscript, $closeBold, $closeItalic, $closeUnderline, $closeHighlight, $closeSuperscript,
+                $closeSubscript);
         }
 
         return $result;
