@@ -119,11 +119,11 @@ class Paragraph extends ArrayObject
             // Sometimes we extract a single space, but in the Paragraph the space is at the beginning of the sentence
             $startsWithSpace = strlen($node->nodeValue) > strlen(ltrim($node->nodeValue));
             if ($startsWithSpace && strlen(ltrim($originalParagraph[$this->nextTagIdentifier]->text)) === 0) {
-                // When the current paragraph has no lengt it may be the space at the beginning
-                $this->nextTagIdentifier++;
-                // Return the next paragraph style
-                if (array_key_exists($this->nextTagIdentifier, $originalParagraph)) {
-                    $originalStyle = $originalParagraph[$this->nextTagIdentifier]->style;
+                // When the current paragraph has no length it may be the space at the beginning
+                if (array_key_exists($this->nextTagIdentifier + 1, $originalParagraph)) {
+                    // Add the next paragraph style
+                    $originalStyle = $originalParagraph[$this->nextTagIdentifier + 1]->style;
+                    $this->nextTagIdentifier++;
                 }
             } else {
                 $originalStyle = $originalParagraph[$this->nextTagIdentifier]->style;
