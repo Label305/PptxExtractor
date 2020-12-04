@@ -29,6 +29,11 @@ class Style {
     public $baseline;
 
     /**
+     * @var string|null
+     */
+    public $sz;
+
+    /**
      * @var ColorStyle|null
      */
     public $solidFill;
@@ -52,6 +57,7 @@ class Style {
         ?string $lang = null,
         ?string $underline = null,
         ?string $baseline = null,
+        ?string $sz = null,
         ?ColorStyle $solidFill = null,
         ?ColorStyle $highlight = null,
         ?FontStyle $latin = null,
@@ -60,6 +66,7 @@ class Style {
         $this->lang = $lang;
         $this->underline = $underline;
         $this->baseline = $baseline;
+        $this->sz = $sz;
         $this->solidFill = $solidFill;
         $this->highlight = $highlight;
         $this->latin = $latin;

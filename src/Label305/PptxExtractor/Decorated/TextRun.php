@@ -87,6 +87,9 @@ class TextRun {
             if ($this->style !== null && !empty($this->style->baseline)) {
                 $value .= ' baseline="' . $this->style->baseline . '"';
             }
+            if ($this->style !== null && !empty($this->style->sz)) {
+                $value .= ' sz="' . $this->style->sz . '"';
+            }
             if ($this->bold) {
                 $value .= ' b="1"';
             }

@@ -105,11 +105,13 @@ class RNodeTextExtractor implements TextExtractor {
             $lang = $rChild->getAttribute('lang');
             $underlineStyle = $rChild->getAttribute('u');
             $baseline = $rChild->getAttribute('baseline');
+            $sz = $rChild->getAttribute('sz');
 
             $style = new Style(
                 !empty($lang) ? $lang : null,
                 !empty($underlineStyle) ? $underlineStyle : null,
                 !empty($baseline) ? $baseline : null,
+                !empty($sz) ? $sz : null,
                 $solidFillStyle,
                 $highlightStyle,
                 $latinStyle,
