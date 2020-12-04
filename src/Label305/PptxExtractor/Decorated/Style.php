@@ -74,6 +74,21 @@ class Style {
     }
 
     /**
+     * @return bool
+     */
+    public function isEmpty()
+    {
+        return ($this->lang === null || $this->lang === "") &&
+        ($this->underline === null || $this->underline === "") &&
+        ($this->baseline === null || $this->baseline === "") &&
+        ($this->sz === null || $this->sz === "") &&
+        ($this->solidFill === null || $this->solidFill === "") &&
+        ($this->highlight === null || $this->highlight === "") &&
+        ($this->latin === null || $this->latin === "") &&
+        ($this->cs === null || $this->cs === "");
+    }
+
+    /**
      * To docx xml string
      *
      * @return string

@@ -171,6 +171,7 @@ class TextRun {
             $value .= "<sup>";
         }
         if ($this->style !== null &&
+            !$this->style->isEmpty() &&
             !$this->highlight &&
             !$this->bold &&
             !$this->italic &&
@@ -184,6 +185,7 @@ class TextRun {
         $value .= htmlentities($this->text);
 
         if ($this->style !== null &&
+            !$this->style->isEmpty() &&
             !$this->highlight &&
             !$this->bold &&
             !$this->italic &&
