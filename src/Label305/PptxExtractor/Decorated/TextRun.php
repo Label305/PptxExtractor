@@ -125,12 +125,14 @@ class TextRun {
      * @param bool $firstWrappedInHighlight
      * @param bool $firstWrappedInSuperscript
      * @param bool $firstWrappedInSubscript
+     * @param bool $firstWrappedInStyle
      * @param bool $lastWrappedInBold
      * @param bool $lastWrappedInItalic
      * @param bool $lastWrappedInUnderline
      * @param bool $lastWrappedInHighlight
      * @param bool $lastWrappedInSuperscript
      * @param bool $lastWrappedInSubscript
+     * @param bool $lastWrappedInStyle
      * @return string HTML string
      */
     public function toHTML(
@@ -140,12 +142,14 @@ class TextRun {
         $firstWrappedInHighlight = true,
         $firstWrappedInSuperscript = true,
         $firstWrappedInSubscript = true,
+        $firstWrappedInStyle = true,
         $lastWrappedInBold = true,
         $lastWrappedInItalic = true,
         $lastWrappedInUnderline = true,
         $lastWrappedInHighlight = true,
         $lastWrappedInSuperscript = true,
-        $lastWrappedInSubscript = true
+        $lastWrappedInSubscript = true,
+        $lastWrappedInStyle = true
     ) {
         $value = '';
 
@@ -167,9 +171,15 @@ class TextRun {
         if ($this->superscript && $firstWrappedInSuperscript) {
             $value .= "<sup>";
         }
+        if ($this->style !== null && $firstWrappedInStyle) {
+            $value .= "<font>";
+        }
 
         $value .= htmlentities($this->text);
 
+        if ($this->style !== null && $lastWrappedInStyle) {
+            $value .= "</font>";
+        }
         if ($this->superscript && $lastWrappedInSuperscript) {
             $value .= "</sup>";
         }
