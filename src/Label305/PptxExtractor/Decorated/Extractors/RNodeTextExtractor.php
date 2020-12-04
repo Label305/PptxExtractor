@@ -93,31 +93,28 @@ class RNodeTextExtractor implements TextExtractor {
         $highlightStyle = null;
         $latinStyle = null;
         $csStyle = null;
-        $hasStyle = false;
 
         foreach ($rChild->childNodes as $propertyNode) {
             if ($propertyNode instanceof DOMElement) {
-                $this->parseStyle($propertyNode, $solidFillStyle, $highlightStyle, $latinStyle, $csStyle, $hasStyle);
+                $this->parseStyle($propertyNode, $solidFillStyle, $highlightStyle, $latinStyle, $csStyle);
             }
         }
 
-        if ($hasStyle) {
-            $lang = $rChild->getAttribute('lang');
-            $underlineStyle = $rChild->getAttribute('u');
-            $baseline = $rChild->getAttribute('baseline');
-            $sz = $rChild->getAttribute('sz');
+        $lang = $rChild->getAttribute('lang');
+        $underlineStyle = $rChild->getAttribute('u');
+        $baseline = $rChild->getAttribute('baseline');
+        $sz = $rChild->getAttribute('sz');
 
-            $style = new Style(
-                !empty($lang) ? $lang : null,
-                !empty($underlineStyle) ? $underlineStyle : null,
-                !empty($baseline) ? $baseline : null,
-                !empty($sz) ? $sz : null,
-                $solidFillStyle,
-                $highlightStyle,
-                $latinStyle,
-                $csStyle
-            );
-        }
+        $style = new Style(
+            !empty($lang) ? $lang : null,
+            !empty($underlineStyle) ? $underlineStyle : null,
+            !empty($baseline) ? $baseline : null,
+            !empty($sz) ? $sz : null,
+            $solidFillStyle,
+            $highlightStyle,
+            $latinStyle,
+            $csStyle
+        );
 
         $bold = !empty($rChild->getAttribute('b'));
         $italic = !empty($rChild->getAttribute('i'));
@@ -140,28 +137,23 @@ class RNodeTextExtractor implements TextExtractor {
         ?ColorStyle &$solidFillStyle,
         ?ColorStyle &$highlightStyle,
         ?FontStyle &$latinStyle,
-        ?FontStyle &$csStyle,
-        bool &$hasStyle
+        ?FontStyle &$csStyle
     ) {
         switch ($propertyNode->nodeName) {
             case "a:solidFill" :
                 $solidFillStyle = (new ColorStyleExtractor())->extract($propertyNode);
-                $hasStyle = true;
                 break;
 
             case "a:highlight" :
                 $highlightStyle = (new ColorStyleExtractor())->extract($propertyNode);
-                $hasStyle = true;
                 break;
 
             case "a:latin" :
                 $latinStyle = (new FontStyleExtractor())->extract($propertyNode);
-                $hasStyle = true;
                 break;
 
             case "a:cs" :
                 $csStyle = (new FontStyleExtractor())->extract($propertyNode);
-                $hasStyle = true;
                 break;
         }
     }
