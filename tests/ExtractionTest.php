@@ -5,6 +5,7 @@ use Label305\PptxExtractor\Basic\BasicInjector;
 use Label305\PptxExtractor\Decorated\DecoratedTextExtractor;
 use Label305\PptxExtractor\Decorated\DecoratedTextInjector;
 use Label305\PptxExtractor\Decorated\Paragraph;
+use Label305\PptxExtractor\Decorated\Style;
 use Label305\PptxExtractor\Decorated\TextRun;
 
 class ExtractionTest extends TestCase {
@@ -117,40 +118,78 @@ class ExtractionTest extends TestCase {
         $paragraph[] = new TextRun('superscript' , false, false, false, false, true);
         $paragraph[] = new TextRun(' and ');
         $paragraph[] = new TextRun('subscript' , false, false, false, false, false, true);
+        $paragraph[] = new TextRun(' and ');
+        $paragraph[] = new TextRun('font style' , false, false, false, false, false, false, new Style());
 
-        $this->assertEquals('This is a test with <strong>bold</strong> and <em>italic</em> and <u>underline</u> and <mark>highlight</mark> and <sup>superscript</sup> and <sub>subscript</sub>', $paragraph->toHTML());
+        $this->assertEquals('This is a test with <strong>bold</strong> and <em>italic</em> and <u>underline</u> and <mark>highlight</mark> and <sup>superscript</sup> and <sub>subscript</sub> and <font>font style</font>', $paragraph->toHTML());
     }
 
     public function test_paragraph_fillWithHTMLDom()
     {
-        $html = 'This is a test with <strong>bold</strong> and <em>italic</em> and <u>underline</u> and <mark>highlight</mark> and <sup>superscript</sup> and <sub>subscript</sub>';
+        $html = 'This is a test with <strong>bold</strong> and <em>italic</em> and <u>underline</u> and <mark>highlight</mark> and <sup>superscript</sup> and <sub>subscript</sub> and <font>font style</font>';
         $html = "<html>" . $html . "</html>";
 
         $htmlDom = new DOMDocument;
         @$htmlDom->loadXml($html);
 
-        $sharedString = new Paragraph();
-        $sharedString->fillWithHTMLDom($htmlDom->documentElement);
+        $paragraph = new Paragraph();
+        $paragraph->fillWithHTMLDom($htmlDom->documentElement, null);
 
-        $this->assertEquals('This is a test with ', $sharedString[0]->text);
-        $this->assertEquals('bold', $sharedString[1]->text);
-        $this->assertTrue($sharedString[1]->bold);
-        $this->assertEquals(' and ', $sharedString[2]->text);
-        $this->assertEquals('italic', $sharedString[3]->text);
-        $this->assertTrue($sharedString[3]->italic);
-        $this->assertEquals(' and ', $sharedString[4]->text);
-        $this->assertEquals('underline', $sharedString[5]->text);
-        $this->assertTrue($sharedString[5]->underline);
-        $this->assertEquals(' and ', $sharedString[6]->text);
-        $this->assertEquals('highlight', $sharedString[7]->text);
-        $this->assertTrue($sharedString[7]->highlight);
-        $this->assertEquals(' and ', $sharedString[8]->text);
-        $this->assertEquals('superscript', $sharedString[9]->text);
-        $this->assertTrue($sharedString[9]->superscript);
-        $this->assertEquals(' and ', $sharedString[10]->text);
-        $this->assertEquals('subscript', $sharedString[11]->text);
-        $this->assertTrue($sharedString[11]->subscript);
+        $this->assertEquals('This is a test with ', $paragraph[0]->text);
+        $this->assertEquals('bold', $paragraph[1]->text);
+        $this->assertTrue($paragraph[1]->bold);
+        $this->assertEquals(' and ', $paragraph[2]->text);
+        $this->assertEquals('italic', $paragraph[3]->text);
+        $this->assertTrue($paragraph[3]->italic);
+        $this->assertEquals(' and ', $paragraph[4]->text);
+        $this->assertEquals('underline', $paragraph[5]->text);
+        $this->assertTrue($paragraph[5]->underline);
+        $this->assertEquals(' and ', $paragraph[6]->text);
+        $this->assertEquals('highlight', $paragraph[7]->text);
+        $this->assertTrue($paragraph[7]->highlight);
+        $this->assertEquals(' and ', $paragraph[8]->text);
+        $this->assertEquals('superscript', $paragraph[9]->text);
+        $this->assertTrue($paragraph[9]->superscript);
+        $this->assertEquals(' and ', $paragraph[10]->text);
+        $this->assertEquals('subscript', $paragraph[11]->text);
+        $this->assertTrue($paragraph[11]->subscript);
+        $this->assertEquals(' and ', $paragraph[12]->text);
+        $this->assertEquals('font style', $paragraph[13]->text);
     }
 
+    public function test_paragraphWithHTML()
+    {
+        $extractor = new DecoratedTextExtractor();
+        $mapping = $extractor->extractStringsAndCreateMappingFile(__DIR__. '/fixtures/markup-presentation.pptx', __DIR__. '/fixtures/markup-presentation-extracted.pptx');
+
+        $translations = [
+            '<mark>Nieuwe</mark> pagi<i>n</i>a <i>Schuingedrukt</i><u>Onderlijnd</u>',
+            'Lijst item 1',
+            'Lijst item 2',
+        ];
+
+        foreach ($translations as $key => $translation) {
+            $mapping[$key] = Paragraph::paragraphWithHTML($translation, $mapping[$key]);
+        }
+
+        $injector = new DecoratedTextInjector();
+        $injector->injectMappingAndCreateNewFile($mapping, __DIR__. '/fixtures/markup-presentation-extracted.pptx', __DIR__. '/fixtures/markup-presentation-injected.pptx');
+
+        $otherExtractor = new DecoratedTextExtractor();
+        $otherMapping = $otherExtractor->extractStringsAndCreateMappingFile(__DIR__. '/fixtures/markup-presentation-injected.pptx', __DIR__. '/fixtures/markup-presentation-injected-extracted.pptx');
+
+        $this->assertEquals('Nieuwe', $otherMapping[0][0]->text);
+        $this->assertEquals(' pagi', $otherMapping[0][1]->text);
+        $this->assertEquals('n', $otherMapping[0][2]->text);
+        $this->assertEquals('a ', $otherMapping[0][3]->text);
+        $this->assertEquals('Schuingedrukt', $otherMapping[0][4]->text);
+        $this->assertEquals('Onderlijnd', $otherMapping[0][5]->text);
+        $this->assertEquals('Lijst item 1', $otherMapping[1][0]->text);
+        $this->assertEquals('Lijst item 2', $otherMapping[2][0]->text);
+
+        unlink(__DIR__.'/fixtures/markup-presentation-extracted.pptx');
+        unlink(__DIR__.'/fixtures/markup-presentation-injected-extracted.pptx');
+        unlink(__DIR__.'/fixtures/markup-presentation-injected.pptx');
+    }
     
 }
