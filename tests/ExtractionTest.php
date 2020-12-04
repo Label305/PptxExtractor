@@ -103,6 +103,31 @@ class ExtractionTest extends TestCase {
         unlink(__DIR__.'/fixtures/markup-presentation-injected.pptx');
     }
 
+    public function test_markupFldTag() {
+
+        $extractor = new DecoratedTextExtractor();
+        $mapping = $extractor->extractStringsAndCreateMappingFile(__DIR__. '/fixtures/a-fld-test.pptx', __DIR__. '/fixtures/a-fld-test-extracted.pptx');
+
+        $this->assertEquals("VOORSTEL VOOR WERKWIJZE VOLGENDE FASE:", $mapping[0][0]->text);
+        $this->assertEquals("1", $mapping[1][0]->text);
+
+        $mapping[0][0]->text = 'PROPOSAL FOR PROCEDURE FOR NEXT PHASE';
+        $mapping[1][0]->text = '2';
+
+        $injector = new DecoratedTextInjector();
+        $injector->injectMappingAndCreateNewFile($mapping, __DIR__. '/fixtures/a-fld-test-extracted.pptx', __DIR__. '/fixtures/a-fld-test-injected.pptx');
+
+        $otherExtractor = new DecoratedTextExtractor();
+        $otherMapping = $otherExtractor->extractStringsAndCreateMappingFile(__DIR__. '/fixtures/a-fld-test-injected.pptx', __DIR__. '/fixtures/a-fld-test-injected-extracted.pptx');
+
+        $this->assertEquals('PROPOSAL FOR PROCEDURE FOR NEXT PHASE', $otherMapping[0][0]->text);
+        $this->assertEquals('2', $otherMapping[1][0]->text);
+
+        unlink(__DIR__.'/fixtures/a-fld-test-extracted.pptx');
+        unlink(__DIR__.'/fixtures/a-fld-test-injected-extracted.pptx');
+        unlink(__DIR__.'/fixtures/a-fld-test-injected.pptx');
+    }
+
     public function test_zs() {
 
         $extractor = new DecoratedTextExtractor();

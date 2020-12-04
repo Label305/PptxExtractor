@@ -87,7 +87,7 @@ class DecoratedTextExtractor extends PptxHandler implements Extractor {
                     $parts[] = [new TextRun($DOMNodeChild->nodeValue)];
                     $firstTextChild = $DOMNodeChild;
 
-                } elseif ($DOMNodeChild instanceof DOMElement && $DOMNodeChild->nodeName === "a:r") {
+                } elseif ($DOMNodeChild instanceof DOMElement && in_array($DOMNodeChild->nodeName, ["a:r", "a:fld"])) {
                     // Parse results
                     $sharedStringParts = (new RNodeTextExtractor())->extract($DOMNodeChild);
                     if (count($sharedStringParts) !== 0) {
