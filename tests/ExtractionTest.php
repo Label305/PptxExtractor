@@ -103,6 +103,30 @@ class ExtractionTest extends TestCase {
         unlink(__DIR__.'/fixtures/markup-presentation-injected.pptx');
     }
 
+    public function test_zs() {
+
+        $extractor = new DecoratedTextExtractor();
+        $mapping = $extractor->extractStringsAndCreateMappingFile(__DIR__. '/fixtures/sz-test.pptx', __DIR__. '/fixtures/sz-test-extracted.pptx');
+        $this->assertEquals("WBSO", $mapping[0][0]->text);
+        $this->assertEquals("Research & Development (Promotion) Act", $mapping[1][0]->text);
+
+        $mapping[0][0]->text = 'WBSO';
+        $mapping[1][0]->text = 'Wet ter bevordering van onderzoek en ontwikkeling';
+
+        $injector = new DecoratedTextInjector();
+        $injector->injectMappingAndCreateNewFile($mapping, __DIR__. '/fixtures/sz-test-extracted.pptx', __DIR__. '/fixtures/sz-test-injected.pptx');
+
+        $otherExtractor = new DecoratedTextExtractor();
+        $otherMapping = $otherExtractor->extractStringsAndCreateMappingFile(__DIR__. '/fixtures/sz-test-injected.pptx', __DIR__. '/fixtures/sz-test-injected-extracted.pptx');
+
+        $this->assertEquals('WBSO', $otherMapping[0][0]->text);
+        $this->assertEquals('Wet ter bevordering van onderzoek en ontwikkeling', $otherMapping[1][0]->text);
+
+        unlink(__DIR__.'/fixtures/sz-test-extracted.pptx');
+        unlink(__DIR__.'/fixtures/sz-test-injected-extracted.pptx');
+        unlink(__DIR__.'/fixtures/sz-test-injected.pptx');
+    }
+
     public function test_paragraph_toHtml()
     {
         $paragraph = new Paragraph();
