@@ -55,7 +55,6 @@ class Paragraph extends ArrayObject
      * @param bool $highlight
      * @param bool $superscript
      * @param bool $subscript
-     * @param bool $hasStyle
      */
     public function fillWithHTMLDom(
         DOMNode $node,
@@ -65,8 +64,7 @@ class Paragraph extends ArrayObject
         bool $underline = false,
         bool $highlight = false,
         bool $superscript = false,
-        bool $subscript = false,
-        bool $hasStyle = false
+        bool $subscript = false
     ) {
         if ($node instanceof DOMText) {
 
@@ -101,12 +99,9 @@ class Paragraph extends ArrayObject
                 if ($node->nodeName == 'sub') {
                     $subscript = true;
                 }
-                if ($node->nodeName == 'font') {
-                    $hasStyle = true;
-                }
                 
                 foreach ($node->childNodes as $key => $child) {
-                    $this->fillWithHTMLDom($child, $originalParagraph, $bold, $italic, $underline, $highlight, $superscript, $subscript, $hasStyle);
+                    $this->fillWithHTMLDom($child, $originalParagraph, $bold, $italic, $underline, $highlight, $superscript, $subscript);
                 }
             }
         }
@@ -152,7 +147,6 @@ class Paragraph extends ArrayObject
         $highlightActive = false;
         $superscriptActive = false;
         $subscriptActive = false;
-        $styleActive = false;
 
         for ($i = 0; $i < count($this); $i++) {
 
@@ -194,12 +188,6 @@ class Paragraph extends ArrayObject
                 $openSubscript = true;
             }
 
-            $openStyle = false;
-            if ($textRun->style !== null && !$styleActive) {
-                $styleActive = true;
-                $openStyle = true;
-            }
-
             $nextTextRun = ($i + 1 < count($this)) ? $this[$i + 1] : null;
             $closeBold = false;
             if ($nextTextRun === null || (!$nextTextRun->bold && $boldIsActive)) {
@@ -237,15 +225,9 @@ class Paragraph extends ArrayObject
                 $closeSubscript = true;
             }
 
-            $closeStyle = false;
-            if ($nextTextRun === null || ($nextTextRun->style === null && $styleActive)) {
-                $styleActive = false;
-                $closeStyle = true;
-            }
-
             $result .= $textRun->toHTML($openBold, $openItalic, $openUnderline, $openHighlight, $openSuperscript,
-                $openSubscript, $openStyle, $closeBold, $closeItalic, $closeUnderline, $closeHighlight, $closeSuperscript,
-                $closeSubscript, $closeStyle);
+                $openSubscript, $closeBold, $closeItalic, $closeUnderline, $closeHighlight, $closeSuperscript,
+                $closeSubscript);
         }
 
         return $result;
