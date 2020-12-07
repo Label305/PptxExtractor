@@ -147,6 +147,7 @@ class Paragraph extends ArrayObject
         $highlightActive = false;
         $superscriptActive = false;
         $subscriptActive = false;
+        $fontIsActive = false;
 
         for ($i = 0; $i < count($this); $i++) {
 
@@ -188,7 +189,28 @@ class Paragraph extends ArrayObject
                 $openSubscript = true;
             }
 
+            $openFont = false;
+            if ($textRun->style !== null && !$textRun->style->isEmpty() &&
+                !$boldIsActive &&
+                !$fontIsActive &&
+                !$italicIsActive &&
+                !$underlineIsActive &&
+                !$highlightActive &&
+                !$superscriptActive &&
+                !$subscriptActive &&
+                count($this) > 1
+            ) {
+                $openFont = true;
+                $fontIsActive = true;
+            }
+
             $nextTextRun = ($i + 1 < count($this)) ? $this[$i + 1] : null;
+
+            $closeFont = false;
+            if (($nextTextRun === null || $nextTextRun->style !== null && !$nextTextRun->style->isEmpty()) && $fontIsActive) {
+                $closeFont = true;
+            }
+
             $closeBold = false;
             if ($nextTextRun === null || (!$nextTextRun->bold && $boldIsActive)) {
                 $boldIsActive = false;
@@ -226,8 +248,8 @@ class Paragraph extends ArrayObject
             }
 
             $result .= $textRun->toHTML($openBold, $openItalic, $openUnderline, $openHighlight, $openSuperscript,
-                $openSubscript, $closeBold, $closeItalic, $closeUnderline, $closeHighlight, $closeSuperscript,
-                $closeSubscript);
+                $openSubscript, $openFont, $closeBold, $closeItalic, $closeUnderline, $closeHighlight, $closeSuperscript,
+                $closeSubscript, $closeFont);
         }
 
         return $result;

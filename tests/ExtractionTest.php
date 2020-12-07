@@ -97,7 +97,6 @@ class ExtractionTest extends TestCase {
         $this->assertEquals('Onderlijnd', $otherMapping[0][6]->text);
         $this->assertEquals('Lijst item 1', $otherMapping[2][0]->text);
         $this->assertEquals('Lijst item 2', $otherMapping[3][0]->text);
-
         unlink(__DIR__.'/fixtures/markup-presentation-extracted.pptx');
         unlink(__DIR__.'/fixtures/markup-presentation-injected-extracted.pptx');
         unlink(__DIR__.'/fixtures/markup-presentation-injected.pptx');
@@ -170,7 +169,7 @@ class ExtractionTest extends TestCase {
         $paragraph[] = new TextRun(' and ');
         $paragraph[] = new TextRun('font style' , false, false, false, false, false, false, new Style());
 
-        $this->assertEquals('This is a test with <strong>bold</strong> and <em>italic</em> and <u>underline</u> and <mark>highlight</mark> and <sup>superscript</sup> and <sub>subscript</sub> and <font>font style</font>', $paragraph->toHTML());
+        $this->assertEquals('This is a test with <strong>bold</strong> and <em>italic</em> and <u>underline</u> and <mark>highlight</mark> and <sup>superscript</sup> and <sub>subscript</sub> and font style', $paragraph->toHTML());
     }
 
     public function test_paragraph_fillWithHTMLDom()

@@ -128,12 +128,14 @@ class TextRun {
      * @param bool $firstWrappedInHighlight
      * @param bool $firstWrappedInSuperscript
      * @param bool $firstWrappedInSubscript
+     * @param bool $firstWrappedInFont
      * @param bool $lastWrappedInBold
      * @param bool $lastWrappedInItalic
      * @param bool $lastWrappedInUnderline
      * @param bool $lastWrappedInHighlight
      * @param bool $lastWrappedInSuperscript
      * @param bool $lastWrappedInSubscript
+     * @param bool $lastWrappedInFont
      * @return string HTML string
      */
     public function toHTML(
@@ -143,12 +145,14 @@ class TextRun {
         $firstWrappedInHighlight = true,
         $firstWrappedInSuperscript = true,
         $firstWrappedInSubscript = true,
+        $firstWrappedInFont = true,
         $lastWrappedInBold = true,
         $lastWrappedInItalic = true,
         $lastWrappedInUnderline = true,
         $lastWrappedInHighlight = true,
         $lastWrappedInSuperscript = true,
-        $lastWrappedInSubscript = true
+        $lastWrappedInSubscript = true,
+        $lastWrappedInFont = true
     ) {
         $value = '';
 
@@ -170,29 +174,13 @@ class TextRun {
         if ($this->superscript && $firstWrappedInSuperscript) {
             $value .= "<sup>";
         }
-        if ($this->style !== null &&
-            !$this->style->isEmpty() &&
-            !$this->highlight &&
-            !$this->bold &&
-            !$this->italic &&
-            !$this->underline &&
-            !$this->subscript &&
-            !$this->superscript
-        ) {
+        if ($this->style !== null && !$this->style->isEmpty() && $firstWrappedInFont) {
             $value .= "<font>";
         }
 
         $value .= htmlentities($this->text);
 
-        if ($this->style !== null &&
-            !$this->style->isEmpty() &&
-            !$this->highlight &&
-            !$this->bold &&
-            !$this->italic &&
-            !$this->underline &&
-            !$this->subscript &&
-            !$this->superscript
-        ) {
+        if ($this->style !== null && !$this->style->isEmpty() && $lastWrappedInFont) {
             $value .= "</font>";
         }
         if ($this->superscript && $lastWrappedInSuperscript) {
