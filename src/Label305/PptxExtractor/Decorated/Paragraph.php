@@ -207,8 +207,9 @@ class Paragraph extends ArrayObject
             $nextTextRun = ($i + 1 < count($this)) ? $this[$i + 1] : null;
 
             $closeFont = false;
-            if (($nextTextRun === null || $nextTextRun->style !== null && !$nextTextRun->style->isEmpty()) && $fontIsActive) {
+            if ($fontIsActive) {
                 $closeFont = true;
+                $fontIsActive = false;
             }
 
             $closeBold = false;
