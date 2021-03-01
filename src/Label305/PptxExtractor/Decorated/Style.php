@@ -119,16 +119,18 @@ class Style {
      */
     private function getFontStyle(FontStyle $fontStyle, string $tagName)
     {
-        $value = '';
-        $value .= '<a:' . $tagName . ' typeface="' . $fontStyle->typeface . '"';
-        if ($fontStyle->panose !== null && $fontStyle->panose !== "") {
-            $value .= ' panose="' . $fontStyle->panose . '"';
-        }
-        if ($fontStyle->pitchFamily !== null && $fontStyle->pitchFamily !== "") {
-            $value .= ' pitchFamily="' . $fontStyle->pitchFamily . '"';
-        }
-        if ($fontStyle->charset !== null && $fontStyle->charset !== "") {
-            $value .= ' charset="' . $fontStyle->charset . '"';
+        $properties = [
+            'typeface',
+            'panose',
+            'pitchFamily',
+            'charset'
+        ];
+
+        $value = '<a:' . $tagName;
+        foreach ($properties as $property) {
+            if ($fontStyle->$property !== null && $fontStyle->$property !== "") {
+                $value .= ' ' . $property . '="' . $fontStyle->$property . '"';
+            }
         }
         $value .= ' />';
 
@@ -142,17 +144,32 @@ class Style {
      */
     private function getColorStyleXml(ColorStyle $colorStyle, string $tagName)
     {
-        $value = '';
-        $value .= '<a:' . $tagName . '>';
-        if ($colorStyle->schemeClr !== null && $colorStyle->schemeClr !== "") {
-            $value .= '<a:schemeClr val="' . $colorStyle->schemeClr . '">';
-            if ($colorStyle->schemeClrLumMod !== null && $colorStyle->schemeClrLumMod !== "") {
-                $value .= '<a:lumMod val="' . $colorStyle->schemeClrLumMod . '"/>';
-            }
-            $value .= '</a:schemeClr>';
+        $properties = [
+            'schemeClr',
+            'srgbClr',
+            'scrgbClr',
+            'prstClr',
+            'hslClr',
+            'sysClr',
+        ];
 
-        } elseif ($colorStyle->srgbClr !== null && $colorStyle->srgbClr !== "") {
-            $value .= '<a:srgbClr val="' . $colorStyle->srgbClr . '"/>';
+        $lumModRendered = false;
+        $lumOffRendered = false;
+
+        $value = '<a:' . $tagName . '>';
+        foreach ($properties as $property) {
+            if ($colorStyle->$property !== null && $colorStyle->$property !== "") {
+                $value .= '<a:' . $property . ' val="' . $colorStyle->$property . '">';
+                if (!$lumModRendered && $colorStyle->lumMod !== null && $colorStyle->lumMod !== "") {
+                    $value .= '<a:lumMod val="' . $colorStyle->lumMod . '"/>';
+                    $lumModRendered = true;
+                }
+                if (!$lumOffRendered && $colorStyle->lumOff !== null && $colorStyle->lumOff !== "") {
+                    $value .= '<a:lumOff val="' . $colorStyle->lumOff . '"/>';
+                    $lumOffRendered = true;
+                }
+                $value .= '</a:' . $property . '>';
+            }
         }
         $value .= '</a:' . $tagName . '>';
 

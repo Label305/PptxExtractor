@@ -239,5 +239,39 @@ class ExtractionTest extends TestCase {
         unlink(__DIR__.'/fixtures/markup-presentation-injected-extracted.pptx');
         unlink(__DIR__.'/fixtures/markup-presentation-injected.pptx');
     }
+
+    public function test_colored()
+    {
+        $extractor = new DecoratedTextExtractor();
+        $mapping = $extractor->extractStringsAndCreateMappingFile(__DIR__. '/fixtures/test-colors.pptx', __DIR__. '/fixtures/test-colors-extracted.pptx');
+
+        $this->assertEquals('MIX VAN VIJF BEWEGINGEN SOORTEN', $mapping[28][0]->text);
+        $this->assertEquals('Bouwlogistiek (3% aanneemsom), alleen	Materialen	hub/ reserveringsoftware/ alternatieve', $mapping[29][0]->text);
+        $this->assertEquals('Omgevingscoördinatie (20% aanneemsom)	Medewerkers	parkeren/ meerdere talencultuur/', $mapping[31][0]->text);
+
+        $translations = [
+            28 => 'MIX OF FIVE MOVEMENT TYPES',
+            29 => 'Construction logistics (3% contract price), only Materials hub/ reservation software/ alternative',
+            31 => 'Environmental coordination (20% contract price) Employees parking/ multiple language culture/'
+        ];
+
+        foreach ($translations as $key => $translation) {
+            $mapping[$key] = Paragraph::paragraphWithHTML($translation, $mapping[$key]);
+        }
+
+        $injector = new DecoratedTextInjector();
+        $injector->injectMappingAndCreateNewFile($mapping, __DIR__. '/fixtures/test-colors-extracted.pptx', __DIR__. '/fixtures/test-colors-injected.pptx');
+
+        $otherExtractor = new DecoratedTextExtractor();
+        $otherMapping = $otherExtractor->extractStringsAndCreateMappingFile(__DIR__. '/fixtures/test-colors-injected.pptx', __DIR__. '/fixtures/test-colors-injected-extracted.pptx');
+
+        $this->assertEquals('MIX OF FIVE MOVEMENT TYPES', $otherMapping[28][0]->text);
+        $this->assertEquals('Construction logistics (3% contract price), only Materials hub/ reservation software/ alternative', $otherMapping[29][0]->text);
+        $this->assertEquals('Environmental coordination (20% contract price) Employees parking/ multiple language culture/', $otherMapping[31][0]->text);
+
+        unlink(__DIR__.'/fixtures/test-colors-extracted.pptx');
+        unlink(__DIR__.'/fixtures/test-colors-injected-extracted.pptx');
+        unlink(__DIR__.'/fixtures/test-colors-injected.pptx');
+    }
     
 }
