@@ -114,6 +114,18 @@ class Paragraph extends ArrayObject
      */
     private function getOriginalStyle(DOMText $node, Paragraph $originalParagraph)
     {
+        // Find styling for corresponding node text
+        foreach ($originalParagraph as $sentence) {
+            if ($sentence->text === $node->wholeText) {
+                return $sentence->style;
+            }
+            // Naive way of search for part of the original text
+            $substr = substr(trim($node->wholeText), 0, strlen($sentence->text));
+            if (!empty($substr) && $substr === $sentence->text) {
+                return $sentence->style;
+            }
+        }
+
         $originalStyle = null;
         if (array_key_exists($this->nextTagIdentifier, $originalParagraph)) {
             // Sometimes we extract a single space, but in the Paragraph the space is at the beginning of the sentence
