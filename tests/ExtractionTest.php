@@ -127,7 +127,7 @@ class ExtractionTest extends TestCase {
         unlink(__DIR__.'/fixtures/a-fld-test-injected.pptx');
     }
 
-    public function test_zs() {
+    public function test_sz() {
 
         $extractor = new DecoratedTextExtractor();
         $mapping = $extractor->extractStringsAndCreateMappingFile(__DIR__. '/fixtures/sz-test.pptx', __DIR__. '/fixtures/sz-test-extracted.pptx');
@@ -149,6 +149,31 @@ class ExtractionTest extends TestCase {
         unlink(__DIR__.'/fixtures/sz-test-extracted.pptx');
         unlink(__DIR__.'/fixtures/sz-test-injected-extracted.pptx');
         unlink(__DIR__.'/fixtures/sz-test-injected.pptx');
+    }
+
+    public function test_szRightAligned() {
+
+        $extractor = new DecoratedTextExtractor();
+        $mapping = $extractor->extractStringsAndCreateMappingFile(__DIR__. '/fixtures/sz-test-right.pptx', __DIR__. '/fixtures/sz-test-right-extracted.pptx');
+        $this->assertEquals("WBSO", $mapping[0][0]->text);
+        $this->assertEquals("Research & Development (Promotion) Act", $mapping[1][0]->text);
+
+        $mapping[0][0]->text = 'WBSO';
+        $mapping[1][0]->text = 'Wet ter bevordering van onderzoek en ontwikkeling';
+
+        $injector = new DecoratedTextInjector();
+        $injector->setDirection('ltr');
+        $injector->injectMappingAndCreateNewFile($mapping, __DIR__. '/fixtures/sz-test-right-extracted.pptx', __DIR__. '/fixtures/sz-test-right-injected.pptx');
+
+        $otherExtractor = new DecoratedTextExtractor();
+        $otherMapping = $otherExtractor->extractStringsAndCreateMappingFile(__DIR__. '/fixtures/sz-test-right-injected.pptx', __DIR__. '/fixtures/sz-test-right-injected-extracted.pptx');
+
+        $this->assertEquals('WBSO', $otherMapping[0][0]->text);
+        $this->assertEquals('Wet ter bevordering van onderzoek en ontwikkeling', $otherMapping[1][0]->text);
+
+        unlink(__DIR__.'/fixtures/sz-test-right-extracted.pptx');
+        unlink(__DIR__.'/fixtures/sz-test-right-injected-extracted.pptx');
+        unlink(__DIR__.'/fixtures/sz-test-right-injected.pptx');
     }
 
     public function test_paragraph_toHtml()
