@@ -298,5 +298,94 @@ class ExtractionTest extends TestCase {
         unlink(__DIR__.'/fixtures/test-colors-injected-extracted.pptx');
         unlink(__DIR__.'/fixtures/test-colors-injected.pptx');
     }
+
+    /**
+     * When a file contains special characters (i.e. `<`, `>`),
+     * These should also be present in the extracted mapping
+     */
+    public function testSpecialCharactersInFile()
+    {
+        /* Given */
+        $file = __DIR__ . '/fixtures/encoding.pptx';
+        $extractedFile = __DIR__ . '/fixtures/encoding-extracted.pptx';
+
+        /* When */
+        $extractor = new DecoratedTextExtractor();
+        $mapping = $extractor->extractStringsAndCreateMappingFile($file, $extractedFile);
+
+        /* Then */
+        $this->assertCount(3, $mapping);
+
+        $firstParagraph = $mapping[0];
+        $this->assertCount(1, $firstParagraph);
+        $this->assertEquals("Test html encoding", $firstParagraph[0]->text);
+
+        $secondParagraph = $mapping[1];
+        $this->assertCount(2, $secondParagraph);
+        $this->assertTrue($secondParagraph[0]->bold);
+        $this->assertEquals("0 < 3 ", $secondParagraph[0]->text);
+        $this->assertEquals("because reasons", $secondParagraph[1]->text);
+
+        $thirdParagraph = $mapping[2];
+        $this->assertCount(2, $thirdParagraph);
+        $this->assertTrue($thirdParagraph[0]->bold);
+        $this->assertEquals("<font> ", $thirdParagraph[0]->text);
+        $this->assertEquals("tag is deprecated in html", $thirdParagraph[1]->text);
+
+        unlink($extractedFile);
+    }
+
+    /**
+     * When translations are injected with encoded characters (i.e. &lt;, &gt;),
+     * These should also be present and encoded when extracting the injected file
+     */
+    public function testEncodedCharactersInTranslation()
+    {
+        /* Given */
+        $file = __DIR__ . '/fixtures/encoding.pptx';
+        $extractedFile = __DIR__ . '/fixtures/encoding-extracted.pptx';
+        $injectedFile = __DIR__ . '/fixtures/encoding-injected.pptx';
+        $extractedInjectedFile = __DIR__ . '/fixtures/encoding-extracted-injected.pptx';
+
+        $extractor = new DecoratedTextExtractor();
+        $mapping = $extractor->extractStringsAndCreateMappingFile($file, $extractedFile);
+
+        // decoded (loadXml) and encoded again (toHTML)
+        $mapping[0][0]->text = Paragraph::paragraphWithHTML("Tester l'encodage html")->toHTML();
+
+        $mapping[1][0]->text = Paragraph::paragraphWithHTML("0 &lt; 3 ")->toHTML();
+        $mapping[1][1]->text = Paragraph::paragraphWithHTML("car raisons")->toHTML();
+
+        $mapping[2][0]->text = Paragraph::paragraphWithHTML("&lt;font&gt; ")->toHTML();
+        $mapping[2][1]->text = Paragraph::paragraphWithHTML("est depreciee en html")->toHTML();
+
+        /* When */
+        $injector = new DecoratedTextInjector();
+        $injector->injectMappingAndCreateNewFile($mapping, $extractedFile, $injectedFile);
+
+        $otherExtractor = new DecoratedTextExtractor();
+        $otherMapping = $otherExtractor->extractStringsAndCreateMappingFile($injectedFile, $extractedInjectedFile);
+
+        /* Then */
+        $this->assertCount(3, $otherMapping);
+
+        $firstParagraph = $otherMapping[0];
+        $this->assertCount(1, $firstParagraph);
+        $this->assertEquals("Tester l'encodage html", $firstParagraph[0]->text);
+
+        $secondParagraph = $otherMapping[1];
+        $this->assertCount(2, $secondParagraph);
+        $this->assertEquals("0 &lt; 3 ", $secondParagraph[0]->text);
+        $this->assertEquals("car raisons", $secondParagraph[1]->text);
+
+        $thirdParagraph = $otherMapping[2];
+        $this->assertCount(2, $thirdParagraph);
+        $this->assertEquals("&lt;font&gt; ", $thirdParagraph[0]->text);
+        $this->assertEquals("est depreciee en html", $thirdParagraph[1]->text);
+
+        unlink($extractedFile);
+        unlink($injectedFile);
+        unlink($extractedInjectedFile);
+    }
     
 }
