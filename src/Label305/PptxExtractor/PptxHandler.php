@@ -147,7 +147,7 @@ abstract class PptxHandler extends ZipHandler {
     {
         $files = array_diff(scandir($dir), array('.', '..'));
         foreach($files as $file) {
-            (is_dir("$dir/$file")) ? rmdirRecursive("$dir/$file") : unlink("$dir/$file");
+            (is_dir("$dir/$file")) ? $this->rmdirRecursive("$dir/$file") : unlink("$dir/$file");
         }
         return rmdir($dir);
     }

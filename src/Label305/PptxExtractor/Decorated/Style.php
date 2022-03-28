@@ -76,7 +76,7 @@ class Style {
     /**
      * @return bool
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         return ($this->lang === null || $this->lang === "") &&
         ($this->underline === null || $this->underline === "") &&
@@ -93,7 +93,7 @@ class Style {
      *
      * @return string
      */
-    public function toPptxXML()
+    public function toPptxXML(): string
     {
         $value = '';
         if ($this->solidFill !== null) {
@@ -117,7 +117,7 @@ class Style {
      * @param string $tagName
      * @return string
      */
-    private function getFontStyle(FontStyle $fontStyle, string $tagName)
+    private function getFontStyle(FontStyle $fontStyle, string $tagName): string
     {
         $properties = [
             'typeface',
@@ -142,7 +142,7 @@ class Style {
      * @param string $tagName
      * @return string
      */
-    private function getColorStyleXml(ColorStyle $colorStyle, string $tagName)
+    private function getColorStyleXml(ColorStyle $colorStyle, string $tagName): string
     {
         $properties = [
             'schemeClr',

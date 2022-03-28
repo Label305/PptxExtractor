@@ -19,7 +19,7 @@ class BasicInjector extends PptxHandler implements Injector {
      * @throws PptxParsingException
      * @return void
      */
-    public function injectMappingAndCreateNewFile(array $mapping, string $fileToInjectLocationPath, string $saveLocationPath)
+    public function injectMappingAndCreateNewFile(array $mapping, string $fileToInjectLocationPath, string $saveLocationPath): void
     {
         $preparedSlides = $this->prepareDocumentForReading($fileToInjectLocationPath);
 
@@ -34,7 +34,7 @@ class BasicInjector extends PptxHandler implements Injector {
      * @param DOMNode $node
      * @param array $mapping
      */
-    protected function assignMappedValues(DOMNode $node, array $mapping)
+    protected function assignMappedValues(DOMNode $node, array $mapping): void
     {
         if ($node instanceof DOMText) {
             $results = [];
