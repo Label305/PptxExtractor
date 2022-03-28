@@ -76,7 +76,7 @@ class TextRun {
      *
      * @return string
      */
-    public function toPptxXML()
+    public function toPptxXML(): string
     {
         $value = '<a:r xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">';
         if ($this->hasMarkup()) {
@@ -153,7 +153,7 @@ class TextRun {
         $lastWrappedInSuperscript = true,
         $lastWrappedInSubscript = true,
         $lastWrappedInFont = true
-    ) {
+    ): string {
         $value = '';
 
         if ($this->highlight && $firstWrappedInHighlight) {
@@ -205,7 +205,7 @@ class TextRun {
         return $value;
     }
 
-    private function hasMarkup()
+    private function hasMarkup(): bool
     {
         if ($this->style !== null) {
             return true;

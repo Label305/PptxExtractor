@@ -13,9 +13,9 @@ class RNodeTextExtractor implements TextExtractor {
     /**
      * @param DOMElement $DOMElement
      * The result is the array which contains te sentences
-     * @return TextRun[]
+     * @return TextRun[]|array
      */
-    public function extract(DOMElement $DOMElement) {
+    public function extract(DOMElement $DOMElement): array {
 
         $text = null;
         $bold = false;
@@ -130,7 +130,6 @@ class RNodeTextExtractor implements TextExtractor {
      * @param ColorStyle|null $highlightStyle
      * @param FontStyle|null $latinStyle
      * @param FontStyle|null $csStyle
-     * @param bool $hasStyle
      */
     private function parseStyle(
         DOMElement $propertyNode,

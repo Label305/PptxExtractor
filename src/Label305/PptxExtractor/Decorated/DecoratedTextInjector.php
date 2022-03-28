@@ -20,7 +20,7 @@ class DecoratedTextInjector extends PptxHandler implements Injector {
      * @param string|null $direction
      * @throws \Exception
      */
-    public function setDirection(string $direction) {
+    public function setDirection(string $direction): void {
         if (!in_array($direction, ['ltr', 'rtl'])) {
             throw new \Exception('Direction should be ltr or rtl');
         }
@@ -35,7 +35,7 @@ class DecoratedTextInjector extends PptxHandler implements Injector {
      * @throws PptxFileException
      * @return void
      */
-    public function injectMappingAndCreateNewFile(array $mapping, string $fileToInjectLocationPath, string $saveLocationPath)
+    public function injectMappingAndCreateNewFile(array $mapping, string $fileToInjectLocationPath, string $saveLocationPath): void
     {
         $preparedSlides = $this->prepareDocumentForReading($fileToInjectLocationPath);
 

@@ -28,7 +28,7 @@ class Paragraph extends ArrayObject
      * @param Paragraph|null $originalParagraph
      * @return Paragraph
      */
-    public static function paragraphWithHTML(string $html, ?Paragraph $originalParagraph = null)
+    public static function paragraphWithHTML(string $html, ?Paragraph $originalParagraph = null): Paragraph
     {
         $html = "<html>" . strip_tags($html, '<br /><br><b><strong><em><i><u><mark><sub><sup><font>') . "</html>";
         $html = str_replace("<br>", "<br />", $html);
@@ -112,7 +112,7 @@ class Paragraph extends ArrayObject
      * @param Paragraph $originalParagraph
      * @return Style|null
      */
-    private function getOriginalStyle(DOMText $node, Paragraph $originalParagraph)
+    private function getOriginalStyle(DOMText $node, Paragraph $originalParagraph): ?Style
     {
         // Find styling for corresponding node text
         foreach ($originalParagraph as $sentence) {
@@ -149,7 +149,7 @@ class Paragraph extends ArrayObject
      *
      * @return string
      */
-    public function toHTML()
+    public function toHTML(): string
     {
         $result = '';
 

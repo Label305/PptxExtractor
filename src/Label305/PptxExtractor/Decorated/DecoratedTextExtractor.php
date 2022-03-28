@@ -49,7 +49,7 @@ class DecoratedTextExtractor extends PptxHandler implements Extractor {
         return $result;
     }
 
-    protected function replaceAndMapValues(DOMNode $node) {
+    protected function replaceAndMapValues(DOMNode $node): array {
         $result = [];
 
         if ($node instanceof DOMElement && $node->nodeName == "a:p") {
@@ -71,10 +71,10 @@ class DecoratedTextExtractor extends PptxHandler implements Extractor {
 
     /**
      * @param DOMNode $DOMNode
-     * @param $result
+     * @param array $result
      * @return array
      */
-    protected function replaceAndMapValuesForParagraph(DOMNode $DOMNode, &$result)
+    protected function replaceAndMapValuesForParagraph(DOMNode $DOMNode, array &$result): array
     {
         $firstTextChild = null;
         $otherNodes = [];

@@ -12,7 +12,7 @@ class ColorStyleExtractor {
      * The result is the array which contains te sentences
      * @return ColorStyle
      */
-    public function extract(DOMElement $DOMElement) {
+    public function extract(DOMElement $DOMElement): ColorStyle {
         
         $properties = [
             'schemeClr' => $schemeClr = null,

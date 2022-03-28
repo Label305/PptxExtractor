@@ -12,7 +12,7 @@ class FontStyleExtractor {
      * The result is the array which contains te sentences
      * @return FontStyle
      */
-    public function extract(DOMElement $DOMElement) {
+    public function extract(DOMElement $DOMElement): FontStyle {
 
         $typeface = $DOMElement->getAttribute('typeface');
         $panose = $DOMElement->getAttribute('panose');
