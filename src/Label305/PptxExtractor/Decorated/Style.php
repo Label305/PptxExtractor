@@ -75,17 +75,25 @@ class Style {
 
     /**
      * @return bool
+     * Prevent setting font tags when only language tag is found.
      */
     public function isEmpty(): bool
     {
-        return ($this->lang === null || $this->lang === "") &&
-        ($this->underline === null || $this->underline === "") &&
-        ($this->baseline === null || $this->baseline === "") &&
-        ($this->sz === null || $this->sz === "") &&
-        ($this->solidFill === null || $this->solidFill === "") &&
-        ($this->highlight === null || $this->highlight === "") &&
-        ($this->latin === null || $this->latin === "") &&
-        ($this->cs === null || $this->cs === "");
+        $hasLang = $this->lang === null || $this->lang === "";
+        $hasOther =
+            ($this->underline === null || $this->underline === "") &&
+            ($this->baseline === null || $this->baseline === "") &&
+            ($this->sz === null || $this->sz === "") &&
+            ($this->solidFill === null || $this->solidFill === "") &&
+            ($this->highlight === null || $this->highlight === "") &&
+            ($this->latin === null || $this->latin === "") &&
+            ($this->cs === null || $this->cs === "");
+
+        if ($hasLang && !$hasOther) {
+            return false;
+        }
+
+        return $hasOther;
     }
 
     /**
