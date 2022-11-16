@@ -110,7 +110,7 @@ class TextRun {
             $value .= '</a:rPr>';
         }
 
-        $value .= '<a:t>' . htmlentities($this->text, ENT_XML1) . "</a:t>";
+        $value .= '<a:t>' . htmlentities($this->text ?? '', ENT_XML1) . "</a:t>";
         $value .= '</a:r>';
 
         return $value;
@@ -178,7 +178,7 @@ class TextRun {
             $value .= "<font>";
         }
 
-        $value .= htmlentities($this->text);
+        $value .= htmlentities($this->text ?? '', ENT_XML1);
 
         if ($this->style !== null && !$this->style->isEmpty() && $lastWrappedInFont) {
             $value .= "</font>";
